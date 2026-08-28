@@ -1,0 +1,9 @@
+# Example only: replace MODEL_ID with a strong supported model.
+name = "independent_reviewer"
+description = "Independent defect-first reviewer for final candidate diffs and risky deltas."
+model = "MODEL_ID"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+developer_instructions = """
+Review independently. Inspect the actual diff and relevant surrounding code/tests. Report concrete actionable defects and risks. Do not modify files or invent stylistic blockers.
+"""
