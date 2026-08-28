@@ -1,16 +1,46 @@
-# Engineering Agent Hierarchy Skill
+# senior-says
 
-A cross-provider engineering skill for coordinating **high-reasoning** and **fast/low-cost** AI agents as a software delivery team.
+**When the junior agent gets in over its head, senior says what happens next.**
 
-The interaction model is intentionally analogous to senior/junior engineering collaboration without assuming that model tier equals human seniority:
+A cross-provider engineering skill for coordinating **high-reasoning** and **fast/lower-cost** AI agents as a software delivery team for Codex and Claude Code.
 
-- **HIGH tier / Orchestrator** — owns problem definition, scope, invariants, architecture, risk, delegation, integration, escalation decisions, and final review.
-- **LOW tier / Executor** — owns bounded implementation, mechanical work, focused discovery, targeted tests, and evidence gathering inside explicit guardrails.
-- **Independent Reviewer** — read-only whenever possible; reviews the final candidate diff or risky delta without inheriting the implementer's assumptions.
+The model is inspired by healthy senior/junior engineering collaboration without assuming that model tier equals human seniority:
 
-The core idea is not "easy work to cheap models, hard work to expensive models." Routing is based on:
+- **HIGH tier / Senior Orchestrator** — owns problem definition, scope, invariants, architecture, risk, ambiguity, delegation, escalation, integration, and final review.
+- **LOW tier / Junior Executor** — owns bounded implementation, mechanical work, focused discovery, targeted tests, and evidence gathering inside explicit guardrails.
+- **REVIEW tier / Independent Reviewer** — independently inspects the final candidate diff and hunts concrete defects without inheriting the implementer's assumptions.
+
+The core rule is not "easy work to cheap models, hard work to expensive models." Routing is based on:
 
 > **Implementation complexity × reasoning depth × risk × ambiguity × domain familiarity**
+
+## How senior-says works
+
+1. HIGH frames `Goal / Context / Constraints / Done when / Non-goals`.
+2. HIGH classifies reasoning depth, risk, ambiguity, and domain familiarity.
+3. HIGH decomposes the work into independently reviewable increments.
+4. LOW receives a bounded work packet with ownership, guardrails, acceptance criteria, validation, and escalation triggers.
+5. LOW implements and returns evidence rather than silently widening scope.
+6. LOW escalates when the task crosses a trust boundary, public contract, migration, concurrency rule, irreversible operation, or unresolved high-impact ambiguity.
+7. HIGH resolves the decision, narrows or upgrades the packet, and integrates the actual changes.
+8. REVIEW performs an independent defect-first pass.
+9. HIGH owns final validation, code review, bad-smell review, focused-security review, Git/PR truth, and completion status.
+
+In short:
+
+> **Senior thinks deeply. Junior moves quickly. Junior asks when the map stops matching the terrain. Senior steps in before the blast radius does.**
+
+## Reasoning ladder
+
+| Level | Question | Default ownership |
+|---|---|---|
+| R1 — Implementation | How do I write this? | LOW |
+| R2 — Correctness | Is it actually correct? | LOW + HIGH review |
+| R3 — Component Design | Is this a good local design? | LOW or HIGH guardrails |
+| R4 — System Reasoning | What happens across the whole system? | HIGH |
+| R5 — Problem / Organizational Reasoning | Are we solving the right problem? | HIGH |
+
+A one-line authorization change can be R4. A 200-file mechanical migration can be R1–R2. Lines of code are not a reasoning metric.
 
 ## Repository layout
 
@@ -26,67 +56,71 @@ skills/engineering-agent-hierarchy/
 
 .agents/skills/engineering-agent-hierarchy/SKILL.md   # Codex repo entrypoint
 .claude/skills/engineering-agent-hierarchy/SKILL.md   # Claude Code repo entrypoint
-examples/codex/agents/                                # semantic role examples
-examples/claude/agents/                               # semantic role examples
-scripts/validate.py
+examples/codex/agents/                                # Codex role examples
+examples/claude/agents/                               # Claude role examples
+scripts/install.py                                    # personal skill installer
+scripts/validate.py                                   # structural validation
 ```
+
+There is one provider-neutral canonical skill. Codex and Claude entrypoints remain deliberately thin so the workflow cannot drift into two competing copies.
 
 ## Codex
 
-Codex discovers repository skills under `.agents/skills/<name>/SKILL.md`. The repo entrypoint redirects to the canonical skill in `skills/engineering-agent-hierarchy/` so there is only one source of truth.
+Codex discovers repository skills under `.agents/skills/<name>/SKILL.md`.
 
-The skill does **not** hard-code a Codex model ID. Model availability varies by account and runtime. Map roles semantically:
+Map the semantic roles to models available in the current environment:
 
-- `HIGH_TIER`: strongest coding/reasoning model available; high/xhigh reasoning.
-- `LOW_TIER`: cheaper/faster coding-capable model; low/medium reasoning.
-- `REVIEW_TIER`: independent strong model or HIGH_TIER in a fresh/read-only role.
+- `HIGH_TIER`: strongest suitable coding/reasoning model; high/xhigh reasoning.
+- `LOW_TIER`: faster/lower-cost coding-capable model; low/medium reasoning.
+- `REVIEW_TIER`: an independent strong model, preferably read-only where supported.
 
-See `examples/codex/agents/` for role templates.
+The skill deliberately does not hard-code a Codex model ID because model availability and account entitlements change.
+
+See `examples/codex/agents/`.
 
 ## Claude Code
 
-Claude Code discovers project skills under `.claude/skills/<name>/SKILL.md`. The repo entrypoint redirects to the same canonical skill.
+Claude Code uses the project skill entrypoint under `.claude/skills/<name>/SKILL.md`.
 
 Suggested semantic mapping:
 
 - `HIGH_TIER`: Opus-class model.
-- `LOW_TIER`: Sonnet-class model for implementation; Haiku-class only for truly mechanical/read-only work.
-- `REVIEW_TIER`: Opus-class or an independent Sonnet/Opus reviewer depending on risk.
+- `LOW_TIER`: Sonnet-class model for normal implementation; use a cheaper tier only for genuinely bounded/mechanical work.
+- `REVIEW_TIER`: an independent capable reviewer chosen according to risk.
 
-See `examples/claude/agents/` for role templates.
+See `examples/claude/agents/`.
 
-## Core workflow
+## Personal installation
 
-1. HIGH tier defines `Goal / Context / Constraints / Done when / Non-goals`.
-2. HIGH tier classifies reasoning depth, risk, ambiguity, and domain familiarity.
-3. HIGH tier decomposes work into independently reviewable increments.
-4. LOW tier receives a bounded **work packet** with file ownership, guardrails, acceptance criteria, tests, and escalation triggers.
-5. LOW tier implements and returns concise evidence, not a long narrative.
-6. LOW tier escalates immediately when the task crosses a trust boundary, contract, migration, concurrency, irreversible operation, or unresolved ambiguity.
-7. HIGH tier integrates the evidence, resolves architectural decisions, and may re-delegate a narrower packet.
-8. Independent review checks the final candidate diff.
-9. HIGH tier owns final code-review, bad-smell, focused-security, Git/PR, and review-feedback gates.
-10. Work stops only at a real external blocker or completed definition of done—not because a worker is waiting for another agent.
+Install the canonical skill for one or both providers:
 
-## Principles
+```bash
+python scripts/install.py codex
+python scripts/install.py claude
+python scripts/install.py both
+```
+
+Existing installs are preserved unless `--force` is explicitly supplied.
+
+## Execution philosophy
 
 - Delivery first; avoid process theatre.
 - No nested subagents.
-- Parallel writes require disjoint file/logic ownership.
-- LOW tier agents do not silently widen scope.
-- HIGH tier agents do not steal every implementation task.
-- Escalation is a normal control mechanism, not a failure.
+- Parallel writers require disjoint ownership.
+- LOW does not silently widen scope.
+- HIGH does not monopolize implementation.
+- Escalation is a control mechanism, not a failure.
 - Tests are evidence, not ritual.
-- Review comments are an inbox that must be re-read at explicit checkpoints.
+- Review comments are an inbox, not background noise.
 - Never claim tests, reviews, pushes, approvals, or merges that did not happen.
-- Never auto-merge unless the user explicitly requested it and all repository gates are satisfied.
+- Never auto-merge unless explicitly requested and all repository gates are satisfied.
 
-## Validation
+The full delivery/review contract lives at `skills/engineering-agent-hierarchy/references/development-execution-contract.md`.
 
-Run:
+## Validate
 
 ```bash
 python scripts/validate.py
 ```
 
-This verifies required skill files, frontmatter, provider entrypoints, and the canonical execution-contract reference.
+The validator checks required skill files, YAML frontmatter, provider entrypoints, and the canonical execution-contract reference.
