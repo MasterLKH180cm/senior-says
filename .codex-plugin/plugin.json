@@ -1,0 +1,6 @@
+{
+  "name": "senior-says",
+  "version": "0.1.0",
+  "description": "Reasoning-aware orchestration for high- and low-tier software-engineering agents.",
+  "skills": "./skills/"
+}
