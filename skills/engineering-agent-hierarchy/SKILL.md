@@ -80,7 +80,7 @@ Use these defaults:
 | High labor/mechanical work + low reasoning | LOW, possibly parallel with disjoint ownership |
 | Low code volume + high reasoning/risk | HIGH decides/designs; LOW may implement bounded change |
 | High complexity + high reasoning + high risk | HIGH leads; LOW receives bounded subproblems |
-| High ambiguity affecting correctness/security/public contract | HIGH; if unresolved, classify as blocked decision |
+| High ambiguity affecting correctness/security/public contract | HIGH; if unresolved, classify as `BLOCKED_DECISION` |
 | Read-heavy discovery/log triage/test discovery | LOW read-only agents in parallel when useful |
 | Final architectural/security review | HIGH or independent REVIEW tier |
 
